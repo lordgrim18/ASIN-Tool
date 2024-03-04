@@ -1,5 +1,6 @@
 import hrequests
 from price_parser import Price
+import unicodedata
 
 BASE_URL = 'https://www.amazon.in/dp/'
 
@@ -43,7 +44,10 @@ def scrape_data(asin: str):
                 rating_count = value.find('span#acrCustomerReviewText').text.strip()
                 continue
 
-            product_specs[key] = value.text.strip()
+            # Apply Unicode normalization
+            normalized_value = unicodedata.normalize('NFD', value.text.strip()).encode('ascii', 'ignore').decode('utf-8')
+            
+            product_specs[key] = normalized_value
 
 
     page.close()
