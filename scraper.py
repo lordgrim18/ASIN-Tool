@@ -15,13 +15,32 @@ def main():
     product_name = page.html.find('div#titleSection').text.strip()  
     print(product_name)
 
-    # page.awaitSelector('input#filterByKeywordTextBox')
-    # page.html.find('input#filterByKeywordTextBox').type(property)
-    # page.html.find('input[aria-labelledby="a-autoid-2-announce"]').click()
-    
-    # page.awaitSelector('div[class="a-section review aok-relative"]')
-    # reviews = page.html.find_all('div[class="a-section review aok-relative"]')
-    # review_body = review.find('span[data-hook="review-body"]').text
+    discount = page.html.find('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]').text.strip()
+    print(discount)
+
+    selling_price = page.html.find('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
+    selling_price_value = selling_price.find('span[class="a-price-whole"]').text.strip()
+    print(selling_price_value)
+
+    avg_rating = page.html.find('span[data-hook="rating-out-of-text"]').text.strip()
+    print(avg_rating)
+
+    total_ratings = page.html.find('span[data-hook="total-review-count"]').text.strip()
+    print(total_ratings)
+
+    product_details = page.html.find('div#prodDetails')
+    specs = product_details.find_all('table')
+    for table in specs:
+        for row in table.find_all('tr'):
+            key = row.find('th').text.strip()
+            value = row.find('td')
+            if key == 'Customer Reviews':
+                avg_rating_2 = value.find('a')
+                avg_rating_2 = avg_rating_2.find('span').text.strip()
+                rating_count = value.find('span#acrCustomerReviewText').text.strip()
+                print(key, avg_rating_2, rating_count)
+                continue
+            print(key, value.text.strip())
 
 
     page.close()
