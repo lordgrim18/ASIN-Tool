@@ -1,4 +1,5 @@
 import hrequests
+from price_parser import Price
 
 BASE_URL = 'https://www.amazon.in/dp/'
 
@@ -20,6 +21,11 @@ def scrape_data(asin: str):
     selling_price = page.html.find('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
     selling_price_value = selling_price.find('span[class="a-price-whole"]').text.strip()
     print(selling_price_value)
+
+    max_retail_price = page.html.find('span[class="a-price a-text-price"]')
+    max_retail_price = max_retail_price.find('span').text.strip()
+    max_retail_price = Price.fromstring(max_retail_price).amount_float
+    print(max_retail_price)
 
     avg_rating = page.html.find('span[data-hook="rating-out-of-text"]').text.strip()
     print(avg_rating)
