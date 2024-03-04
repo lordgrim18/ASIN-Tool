@@ -2,9 +2,8 @@ import hrequests
 
 BASE_URL = 'https://www.amazon.in/dp/'
 
-url = BASE_URL + 'B0BGS8PG3K'
-
-def main():
+def scrape_data(asin: str):
+    url = BASE_URL + asin
     session = hrequests.Session(browser='chrome')
     resp = session.get(url)
     page = resp.render(mock_human=True)
@@ -46,4 +45,4 @@ def main():
     page.close()
     
 if __name__ == '__main__':
-    main()
+    scrape_data(asin='B0BGS8PG3K')
