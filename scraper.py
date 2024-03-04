@@ -52,7 +52,7 @@ def scrape_data(asin: str):
 
     page.close()
 
-    return product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs
+    return [product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs]
 
     
 if __name__ == '__main__':
