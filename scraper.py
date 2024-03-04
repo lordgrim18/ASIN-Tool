@@ -16,10 +16,12 @@ def scrape_data(asin: str):
     print(product_name)
 
     discount = page.html.find('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]').text.strip()
+    discount = abs(int(discount[:-1]))
     print(discount)
 
     selling_price = page.html.find('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
     selling_price_value = selling_price.find('span[class="a-price-whole"]').text.strip()
+    selling_price_value = Price.fromstring(selling_price_value).amount_float
     print(selling_price_value)
 
     max_retail_price = page.html.find('span[class="a-price a-text-price"]')
