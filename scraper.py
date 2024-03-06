@@ -2,6 +2,7 @@ import hrequests
 from price_parser import Price
 import unicodedata
 import asyncio
+import pandas as pd
 
 BASE_URL = 'https://www.amazon.in/dp/'
 
@@ -53,9 +54,21 @@ async def scrape_data(asin: str):
             
             product_specs[key] = normalized_value
 
+    df = pd.DataFrame()
+    df['Product Name'] = [product_name]
+    df['Discount'] = [discount]
+    df['Selling Price'] = [selling_price_value]
+    df['MRP'] = [max_retail_price]
+    df['Average Rating'] = [avg_rating]
+    df['Rating Count'] = [rating_count]
+    df['Product Specs'] = [product_specs]
+
+    df.to_csv('product_data.csv', index=False)
+
+
     page.close()
 
-    # print(product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs)
+    print(product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs)
     # return [product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs]
 
 def run_scraper(asin):
