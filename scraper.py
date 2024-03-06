@@ -34,17 +34,17 @@ def scrape_data(asin: str):
         print(discount)
 
         try:
-            selling_price_element = page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
-            selling_price_value = selling_price_element.query_selector('span[class="a-price-whole"]').text_content()
-            selling_price_value = Price.fromstring(selling_price_value).amount_float
+            selling_price_element = page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]').text_content()
+            # selling_price_value = selling_price_element.query_selector('span[class="a-price-whole"]').text_content()
+            selling_price_value = Price.fromstring(selling_price_element).amount_float
         except:
             selling_price_value = 'Not available'
         print(selling_price_value)
 
         try:
-            max_retail_price_element = page.query_selector('span[class="a-price a-text-price"]')
-            max_retail_price = max_retail_price_element.query_selector('span').text_content()
-            max_retail_price = Price.fromstring(max_retail_price).amount_float
+            max_retail_price_element = page.query_selector('span[class="a-price a-text-price"]').text_content()
+            # max_retail_price = max_retail_price_element.query_selector('span').text_content()
+            max_retail_price = Price.fromstring(max_retail_price_element).amount_float
         except:
             max_retail_price = 'Not available'
         print(max_retail_price)
