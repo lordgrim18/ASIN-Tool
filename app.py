@@ -3,8 +3,9 @@ os.system("pip install -U hrequests[all]")
 os.system("python -m hrequests install")
 
 import streamlit as st  
+import asyncio
 
-from scraper import run_scraper
+from scraper import run_scraper, scrape_data
 
 def main():
 
@@ -15,7 +16,8 @@ def main():
     if st.button("Search"):
         if asin_input:
 
-            run_scraper(asin_input)
+            # run_scraper(asin_input)
+            asyncio.run(scrape_data(asin_input))
             # if product_data:
             #     st.write("### Product Data:")
             #     st.write(f"**Product Name:** {product_data[0]}")
