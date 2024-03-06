@@ -15,44 +15,62 @@ def scrape_data(asin: str):
         browser = pw.chromium.launch()
         page = browser.new_page()
         page.goto(url)
-        page.wait_for_selector('div#titleSection')
 
-        product_name_element = page.query_selector('div#titleSection')   
-        product_name = product_name_element.text_content().strip()
+        try:
+            page.wait_for_selector('div#titleSection')
+
+            product_name_element = page.query_selector('div#titleSection')   
+            product_name = product_name_element.text_content().strip()
+        except:
+            product_name = 'Element not found'
         print(product_name)
 
-        discount_element = page.query_selector('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]')
-        discount = discount_element.text_content()
-        discount = abs(int(discount[:-1]))
+        try:
+            discount_element = page.query_selector('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]')
+            discount = discount_element.text_content()
+            discount = abs(int(discount[:-1]))
+        except:
+            discount = 0
         print(discount)
 
-        selling_price_element = page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
-        selling_price_value = selling_price_element.query_selector('span[class="a-price-whole"]').text_content()
-        selling_price_value = Price.fromstring(selling_price_value).amount_float
+        try:
+            selling_price_element = page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
+            selling_price_value = selling_price_element.query_selector('span[class="a-price-whole"]').text_content()
+            selling_price_value = Price.fromstring(selling_price_value).amount_float
+        except:
+            selling_price_value = 'Not available'
         print(selling_price_value)
 
-        max_retail_price_element = page.query_selector('span[class="a-price a-text-price"]')
-        max_retail_price = max_retail_price_element.query_selector('span').text_content()
-        max_retail_price = Price.fromstring(max_retail_price).amount_float
+        try:
+            max_retail_price_element = page.query_selector('span[class="a-price a-text-price"]')
+            max_retail_price = max_retail_price_element.query_selector('span').text_content()
+            max_retail_price = Price.fromstring(max_retail_price).amount_float
+        except:
+            max_retail_price = 'Not available'
         print(max_retail_price)
 
         product_specs = {}
-        product_details = page.query_selector('div#prodDetails')
-        specs = product_details.query_selector_all('table')
+        try:
+            product_details = page.query_selector('div#prodDetails')
+            specs = product_details.query_selector_all('table')
 
-        for table in specs:
-            for row in table.query_selector_all('tr'):
-                key = row.query_selector('th').text_content()
-                value = row.query_selector('td')
-                if key == 'Customer Reviews':
-                    avg_rating = value.query_selector('a').query_selector('span').text_content().strip()
-                    rating_count = value.query_selector('span#acrCustomerReviewText').text_content().strip()
-                    continue
+            for table in specs:
+                for row in table.query_selector_all('tr'):
+                    key = row.query_selector('th').text_content()
+                    value = row.query_selector('td')
+                    if key == 'Customer Reviews':
+                        avg_rating = value.query_selector('a').query_selector('span').text_content().strip()
+                        rating_count = value.query_selector('span#acrCustomerReviewText').text_content().strip()
+                        continue
 
-                # Apply Unicode normalization
-                normalized_value = unicodedata.normalize('NFD', value.text_content().strip()).encode('ascii', 'ignore').decode('utf-8')
-                
-                product_specs[key] = normalized_value
+                    # Apply Unicode normalization
+                    normalized_value = unicodedata.normalize('NFD', value.text_content().strip()).encode('ascii', 'ignore').decode('utf-8')
+                    
+                    product_specs[key] = normalized_value
+        except:
+            avg_rating = 'Not available'
+            rating_count = 'Not available'
+            product_specs = 'Not available'
             
         print(avg_rating, rating_count, product_specs)
 
