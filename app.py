@@ -1,6 +1,5 @@
 import os
-os.system("pip install -U hrequests[all]")
-os.system("python -m hrequests install")
+os.system("playwright install")
 
 import streamlit as st  
 import asyncio
