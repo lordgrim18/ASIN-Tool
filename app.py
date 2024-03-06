@@ -1,3 +1,7 @@
+import os
+os.system("pip install -U hrequests[all]")
+os.system("python -m hrequests install")
+
 import streamlit as st  
 
 from scraper import run_scraper
