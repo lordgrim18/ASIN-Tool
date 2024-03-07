@@ -23,7 +23,8 @@ async def scrape_data(asin: str):
             product_name_element = await page.query_selector('div#titleSection')
             product_name = await product_name_element.text_content()
             product_name = product_name.strip()
-        except:
+        except Exception as e:
+            print('Error in finding product name:', e)
             product_name = 'Element not found'
 
         print(product_name)
@@ -33,7 +34,7 @@ async def scrape_data(asin: str):
             discount = await discount_element.text_content()
             discount = abs(int(discount[:-1]))
         except Exception as e:
-            print('##################', e)
+            print('No discount', e)
             discount = 0
 
         print(discount)
@@ -42,7 +43,7 @@ async def scrape_data(asin: str):
             selling_price_element = await (await page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')).text_content()
             selling_price_value = Price.fromstring(selling_price_element).amount_float
         except Exception as e:
-            print('###################', e)
+            print('Error in finding selling price:' ,e)
             selling_price_value = 'Not available'
 
         print(selling_price_value)
@@ -52,7 +53,7 @@ async def scrape_data(asin: str):
             # max_retail_price = await max_retail_price_element.query_selector('span').text_content()
             max_retail_price = Price.fromstring(max_retail_price_element).amount_float
         except Exception as e:
-            print('#############################', e)
+            print('Error in finding max retail price:', e)
             max_retail_price = 'Not available'
 
         print(max_retail_price)
@@ -81,7 +82,7 @@ async def scrape_data(asin: str):
                     normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
                     product_specs[key] = normalized_value
         except Exception as e:
-            print('###############################', e)
+            print('Error in finding specifications:', e)
             avg_rating = 'Not available'
             rating_count = 'Not available'
             product_specs = 'Not available'
@@ -101,14 +102,14 @@ async def scrape_data(asin: str):
     df['Rating Count'] = [rating_count]
     df['Product Specs'] = [product_specs]
 
-    df.to_csv('product_data.csv', index=False)
+    df.to_csv('./data/product_data.csv', index=False)
 
 
 def run_scraper(asin: str):
     loop = asyncio.ProactorEventLoop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(scrape_data(asin))
-    
+
     # asyncio.run(scrape_data(asin))
 
 if __name__ == '__main__':
