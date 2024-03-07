@@ -42,6 +42,7 @@ async def scrape_data(asin: str):
         try:
             selling_price_element = await (await page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')).text_content()
             selling_price_value = Price.fromstring(selling_price_element).amount_float
+            currency_used = Price.fromstring(selling_price_element).currency
         except Exception as e:
             print('Error in finding selling price:' ,e)
             selling_price_value = 'Not available'
@@ -68,12 +69,16 @@ async def scrape_data(asin: str):
                     key = await (await row.query_selector('th')).text_content()
                     value = await row.query_selector('td')
 
+                    if key == 'ASIN':
+                        continue
+
                     if key == 'Customer Reviews':
                         avg_rating = await value.query_selector('a')
                         avg_rating = await (await avg_rating.query_selector('span')).text_content()
                         avg_rating = avg_rating.strip()
                         rating_count = await (await value.query_selector('span#acrCustomerReviewText')).text_content()
                         rating_count = rating_count.strip()
+                        rating_count = rating_count.split()[0]
                         continue
 
                     # Apply Unicode normalization
@@ -81,6 +86,7 @@ async def scrape_data(asin: str):
                     value = value.strip()
                     normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
                     product_specs[key] = normalized_value
+
         except Exception as e:
             print('Error in finding specifications:', e)
             avg_rating = 'Not available'
@@ -94,13 +100,15 @@ async def scrape_data(asin: str):
         await browser.close()
 
     df = pd.DataFrame()
-    df['Product Name'] = [product_name]
-    df['Discount'] = [discount]
-    df['Selling Price'] = [selling_price_value]
+    df['ASIN'] = [asin]
+    df['product_name'] = [product_name]
+    df['discount'] = [discount]
+    df['selling_price'] = [selling_price_value]
     df['MRP'] = [max_retail_price]
-    df['Average Rating'] = [avg_rating]
-    df['Rating Count'] = [rating_count]
-    df['Product Specs'] = [product_specs]
+    df['currency_used'] = [currency_used]
+    df['average_rating'] = [avg_rating]
+    df['rating_count'] = [rating_count]
+    df['product_specs'] = [product_specs]
 
     df.to_csv('./data/product_data.csv', index=False)
 
