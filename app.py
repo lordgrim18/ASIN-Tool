@@ -9,8 +9,23 @@ toaster = ToastNotifier()
 
 from scraper import run_scraper
 
-
 st.title("ASIN Tool - Amazon Product Details Lookup")
+
+st.markdown("""
+Welcome to the ASIN Tool - your one-stop solution for fetching Amazon product details!
+
+**Instructions:**
+1. Enter the ASIN (Amazon Standard Identification Number) of the product you want to look up.
+2. Click the "Search" button.
+3. Wait for the data to be scraped from Amazon.
+
+Once the data is fetched successfully, you'll be presented with detailed product information including its name, pricing, ratings, and specifications.
+
+Let's get started!
+""")
+
+st.write(" ")
+st.write(" ")
 
 asin_input = st.text_input("Enter ASIN (Amazon Standard Identification Number):")
 
