@@ -28,34 +28,42 @@ Let's get started!
 st.write(" ")
 st.write(" ")
 
+if 'download_button_clicked' not in st.session_state:
+    st.session_state.download_button_clicked = False
+
 asin_input = st.text_input("Enter ASIN (Amazon Standard Identification Number):")
 
 if st.button("Search"):
+    st.session_state.download_button_clicked = False
     if asin_input:
         with st.spinner("Scraping data from Amazon... Please wait."):
             run_scraper(asin_input)
 
         if os.path.exists('./data/product_data.csv'):
+            st.session_state.download_button_clicked = True
             toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
-            st.write("### Product Data:")
-            df = pd.read_csv('./data/product_data.csv')
-            for data in df.values:
-                st.write(f"**Product Name:** {data[0]}")
-                st.write(f"**Discount:** {data[1]}%")
-                st.write(f"**Selling Price:** {data[2]}")
-                st.write(f"**Max Retail Price:** {data[3]}")
-                st.write(f"**Average Rating:** {data[4]}")
-                st.write(f"**Rating Count:** {data[5]}")
-                st.write(f"**Product Specifications:**")
-                for key, value in eval(data[6]).items():
-                    st.write(f" - {key}: {value}")
 
-            st.write(" ")
-            st.write('### Want to download the data as a CSV file? Click the button below!')
+if st.session_state.download_button_clicked:
+    st.write("### Product Data:")
+    df = pd.read_csv('./data/product_data.csv')
+    for data in df.values:
+        st.write(f"**Product Name:** {data[0]}")
+        st.write(f"**Discount:** {data[1]}%")
+        st.write(f"**Selling Price:** {data[2]}")
+        st.write(f"**Max Retail Price:** {data[3]}")
+        st.write(f"**Average Rating:** {data[4]}")
+        st.write(f"**Rating Count:** {data[5]}")
+        st.write(f"**Product Specifications:**")
+        for key, value in eval(data[6]).items():
+            st.write(f" - {key}: {value}")
 
-            st.download_button(
-            label="Download",
-            data=df.to_csv(index=False),
-            file_name='product_data.csv',
-            mime='text/csv',
-            )
+    st.write(" ")
+
+    st.write('### Want to download the data as a CSV file? Click the button below!')
+
+    st.download_button(
+    label="Download",
+    data=df.to_csv(index=False),
+    file_name='product_data.csv',
+    mime='text/csv',
+    )
