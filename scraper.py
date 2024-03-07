@@ -59,6 +59,26 @@ async def scrape_data(asin: str):
 
         print(max_retail_price)
 
+        try:
+            avg_rating = await (await page.query_selector('span[data-hook="rating-out-of-text"]')).text_content()
+            avg_rating = avg_rating.strip()
+            avg_rating = avg_rating.split(' ')[0]
+        except Exception as e:
+            print('Error in finding average rating:', e)
+            avg_rating = 'Not available'
+        
+        print(avg_rating)
+
+        try:
+            rating_count = await (await page.query_selector('span[data-hook="total-review-count"]')).text_content()
+            rating_count = rating_count.strip()
+            rating_count = rating_count.split(' ')[0]
+        except Exception as e:
+            print('Error in finding total ratings:', e)
+            rating_count = 'Not available'
+
+        print(rating_count)
+
         product_specs = {}
         try:
             product_details = await page.query_selector('div#prodDetails')
@@ -74,12 +94,6 @@ async def scrape_data(asin: str):
                         continue
 
                     if key == 'Customer Reviews':
-                        avg_rating = await value.query_selector('a')
-                        avg_rating = await (await avg_rating.query_selector('span')).text_content()
-                        avg_rating = avg_rating.strip()
-                        rating_count = await (await value.query_selector('span#acrCustomerReviewText')).text_content()
-                        rating_count = rating_count.strip()
-                        rating_count = rating_count.split()[0]
                         continue
 
                     # Apply Unicode normalization
@@ -90,12 +104,8 @@ async def scrape_data(asin: str):
 
         except Exception as e:
             print('Error in finding specifications:', e)
-            avg_rating = 'Not available'
-            rating_count = 'Not available'
             product_specs = 'Not available'
 
-        print(avg_rating)
-        print(rating_count)
         print(product_specs)
 
         await browser.close()
