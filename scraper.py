@@ -30,34 +30,70 @@ async def scrape_data(asin: str):
         print(product_name)
 
         try:
-            discount_element = await page.query_selector('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]')
-            discount = await discount_element.text_content()
-            discount = abs(int(discount[:-1]))
-        except Exception as e:
-            print('No discount', e)
-            discount = 0
-
-        print(discount)
-
-        try:
             selling_price_element = await (await page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')).text_content()
             selling_price_value = Price.fromstring(selling_price_element).amount_float
+
             currency_used = Price.fromstring(selling_price_element).currency
-        except Exception as e:
-            print('Error in finding selling price:' ,e)
-            selling_price_value = 'Not available'
 
-        print(selling_price_value)
-
-        try:
             max_retail_price_element = await (await page.query_selector('span[class="a-price a-text-price"]')).text_content()
             # max_retail_price = await max_retail_price_element.query_selector('span').text_content()
             max_retail_price = Price.fromstring(max_retail_price_element).amount_float
-        except Exception as e:
-            print('Error in finding max retail price:', e)
-            max_retail_price = 'Not available'
 
+            discount = (max_retail_price - selling_price_value) / max_retail_price * 100
+            discount = discount.__round__()
+
+        except:
+            try:
+                # price_parent_element = await page.query_selector(":text('M.R.P') >> .. >> .. >> .. >> ..")
+                selling_price_element = await page.query_selector('span[class="a-price a-text-price a-size-medium apexPriceToPay"]')
+                selling_price = await selling_price_element.text_content()
+                selling_price_value = Price.fromstring(selling_price).amount_float
+                currency_used = Price.fromstring(selling_price).currency
+
+                try:
+                    mrp_discount_element = await page.query_selector_all('span[class="a-price a-text-price a-size-base"]')
+
+                    max_retail_price = await mrp_discount_element[0].text_content()
+                    max_retail_price = Price.fromstring(max_retail_price).amount_float
+
+                    discount = (max_retail_price - selling_price_value) / max_retail_price * 100
+                    discount = discount.__round__()
+
+                except:
+                    max_retail_price = selling_price
+                    discount = 0
+
+            except Exception as e:
+                print('Error in finding price:' ,e)
+                selling_price_value = 'Not available'
+                currency_used = 'Not available'
+                max_retail_price = 'Not available'
+                discount = 'Not available'
+
+        print(selling_price_value)
+        print(currency_used)
         print(max_retail_price)
+        print(discount)
+
+        try:
+            avg_rating = await (await page.query_selector('span[data-hook="rating-out-of-text"]')).text_content()
+            avg_rating = avg_rating.strip()
+            avg_rating = avg_rating.split(' ')[0]
+        except Exception as e:
+            print('Error in finding average rating:', e)
+            avg_rating = 'Not available'
+        
+        print(avg_rating)
+
+        try:
+            rating_count = await (await page.query_selector('span[data-hook="total-review-count"]')).text_content()
+            rating_count = rating_count.strip()
+            rating_count = rating_count.split(' ')[0]
+        except Exception as e:
+            print('Error in finding total ratings:', e)
+            rating_count = 'Not available'
+
+        print(rating_count)
 
         product_specs = {}
         try:
@@ -74,12 +110,6 @@ async def scrape_data(asin: str):
                         continue
 
                     if key == 'Customer Reviews':
-                        avg_rating = await value.query_selector('a')
-                        avg_rating = await (await avg_rating.query_selector('span')).text_content()
-                        avg_rating = avg_rating.strip()
-                        rating_count = await (await value.query_selector('span#acrCustomerReviewText')).text_content()
-                        rating_count = rating_count.strip()
-                        rating_count = rating_count.split()[0]
                         continue
 
                     # Apply Unicode normalization
@@ -88,14 +118,45 @@ async def scrape_data(asin: str):
                     normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
                     product_specs[key] = normalized_value
 
-        except Exception as e:
-            print('Error in finding specifications:', e)
-            avg_rating = 'Not available'
-            rating_count = 'Not available'
-            product_specs = 'Not available'
 
-        print(avg_rating)
-        print(rating_count)
+        except:
+            try:
+                product_details_parents = await page.query_selector_all(":text('Product details') >> ..")
+
+                product_details_elements = await product_details_parents[0].query_selector_all("div[class='a-fixed-left-grid product-facts-detail']")
+                for product_details_element in product_details_elements:
+                    product_details_element = await product_details_element.query_selector("div")
+                    product_details = await product_details_element.query_selector_all("div")
+                    key = await product_details[0].text_content()
+                    key = key.strip()
+                    if key == 'ASIN':
+                        continue
+                    value = await product_details[1].text_content()
+                    value = value.strip()
+                    normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
+                    product_specs[key] = normalized_value
+            
+                product_details_elements = await product_details_parents[1].query_selector_all("ul")
+                product_details_lists = await product_details_elements[0].query_selector_all("li")
+                for product_details_list in product_details_lists:
+                    product_details = await product_details_list.query_selector("span")
+                    product_details = await product_details.query_selector_all("span")
+                    key = await product_details[0].text_content()
+                    key = key.strip()
+                    normalized_key = unicodedata.normalize('NFD', key).encode('ascii', 'ignore').decode('utf-8')
+                    normalized_key = normalized_key.replace(':', '')
+                    normalized_key = normalized_key.strip()
+                    if normalized_key == 'ASIN':
+                        continue
+                    value = await product_details[1].text_content()
+                    value = value.strip()
+                    normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
+                    product_specs[normalized_key] = normalized_value
+
+            except Exception as e:
+                print('Error in finding specifications:', e)
+                product_specs = 'Not available'
+
         print(product_specs)
 
         await browser.close()
@@ -123,4 +184,14 @@ def run_scraper(asin: str):
 
 if __name__ == '__main__':
 
-    run_scraper('B0BGS8PG3K')
+    # run_scraper('B0BGS8PG3K')
+    # run_scraper('B083FQS2GZ')
+    # run_scraper('B0CRDDTQXS')
+    # run_scraper('B0CPYJJJMM')
+    # run_scraper('B077BFH786')
+    # run_scraper('B07M9XYH9K')
+    # run_scraper('B08D8J88X3')
+    # run_scraper('B09CKWH7W3')
+    # run_scraper('B0C9HXT93P')
+    # run_scraper('B09D8BQM7C')
+    run_scraper('B09GB7Y272')
