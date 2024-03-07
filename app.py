@@ -1,8 +1,8 @@
 import os
-os.system("playwright install")
+os.system("playwright install chromium")
 
 import streamlit as st  
-import asyncio
+import pandas as pd
 
 from scraper import run_scraper, scrape_data
 
@@ -16,20 +16,19 @@ def main():
         if asin_input:
 
             # run_scraper(asin_input)
-            asyncio.run(scrape_data(asin_input))
-            # if product_data:
-            #     st.write("### Product Data:")
-            #     st.write(f"**Product Name:** {product_data[0]}")
-            #     st.write(f"**Discount:** {product_data[1]}%")
-            #     st.write(f"**Selling Price:** ₹{product_data[2]}")
-            #     st.write(f"**Max Retail Price:** ₹{product_data[3]}")
-            #     st.write(f"**Average Rating:** {product_data[4]}")
-            #     st.write(f"**Rating Count:** {product_data[5]}")
-            #     st.write(f"**Product Specifications:**")
-            #     for key, value in product_data[6].items():
-            #         st.write(f"**{key}:** {value}")
-            # else:
-            #     st.write("Product not found. Please check the ASIN.")
+            if os.path.exists('product_data.csv'):
+                st.write("### Product Data:")
+                df = pd.read_csv('product_data.csv')
+                for data in df.values:
+                    st.write(f"**Product Name:** {data[0]}")
+                    st.write(f"**Discount:** {data[1]}%")
+                    st.write(f"**Selling Price:** {data[2]}")
+                    st.write(f"**Max Retail Price:** {data[3]}")
+                    st.write(f"**Average Rating:** {data[4]}")
+                    st.write(f"**Rating Count:** {data[5]}")
+                    st.write(f"**Product Specifications:**")
+                    for key, value in eval(data[6]).items():
+                        st.write(f" - {key}: {value}")
 
 
 if __name__ == "__main__":

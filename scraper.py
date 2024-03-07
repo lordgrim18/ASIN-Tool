@@ -1,58 +1,96 @@
-import hrequests
 from price_parser import Price
 import unicodedata
 import asyncio
 import pandas as pd
+from playwright.async_api import async_playwright
 
 BASE_URL = 'https://www.amazon.in/dp/'
 
 async def scrape_data(asin: str):
     url = BASE_URL + asin
-    # session = hrequests.Session(browser='chrome')
-    # resp = session.get(url)
-    # page = resp.render(mock_human=True)
 
-    resp = hrequests.get(url)
-    page = resp.render(mock_human=True)
+    async with async_playwright() as pw:
+        browser = await pw.chromium.launch()
+        context = await browser.new_context()
+        page = await context.new_page()
 
-    page.goto(url)
+        await page.goto(url)
 
-    page.awaitSelector('div#titleSection')
-    product_name = page.html.find('div#titleSection').text.strip()  
+        await page.wait_for_load_state('load')
 
-    discount = page.html.find('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]').text.strip()
-    discount = abs(int(discount[:-1]))
+        try:
+            await page.wait_for_selector('div#titleSection')
+            product_name_element = await page.query_selector('div#titleSection')
+            product_name = await product_name_element.text_content()
+            product_name = product_name.strip()
+        except:
+            product_name = 'Element not found'
 
-    selling_price = page.html.find('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')
-    selling_price_value = selling_price.find('span[class="a-price-whole"]').text.strip()
-    selling_price_value = Price.fromstring(selling_price_value).amount_float
+        print(product_name)
 
-    max_retail_price = page.html.find('span[class="a-price a-text-price"]')
-    max_retail_price = max_retail_price.find('span').text.strip()
-    max_retail_price = Price.fromstring(max_retail_price).amount_float
+        try:
+            discount_element = await page.query_selector('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]')
+            discount = await discount_element.text_content()
+            discount = abs(int(discount[:-1]))
+        except Exception as e:
+            print('##################', e)
+            discount = 0
 
-    # avg_rating = page.html.find('span[data-hook="rating-out-of-text"]').text.strip()
+        print(discount)
 
-    # total_ratings = page.html.find('span[data-hook="total-review-count"]').text.strip()
+        try:
+            selling_price_element = await (await page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')).text_content()
+            selling_price_value = Price.fromstring(selling_price_element).amount_float
+        except Exception as e:
+            print('###################', e)
+            selling_price_value = 'Not available'
 
-    product_specs = {}
-    product_details = page.html.find('div#prodDetails')
-    specs = product_details.find_all('table')
+        print(selling_price_value)
 
-    for table in specs:
-        for row in table.find_all('tr'):
-            key = row.find('th').text.strip()
-            value = row.find('td')
-            if key == 'Customer Reviews':
-                avg_rating = value.find('a')
-                avg_rating = avg_rating.find('span').text.strip()
-                rating_count = value.find('span#acrCustomerReviewText').text.strip()
-                continue
+        try:
+            max_retail_price_element = await (await page.query_selector('span[class="a-price a-text-price"]')).text_content()
+            # max_retail_price = await max_retail_price_element.query_selector('span').text_content()
+            max_retail_price = Price.fromstring(max_retail_price_element).amount_float
+        except Exception as e:
+            print('#############################', e)
+            max_retail_price = 'Not available'
 
-            # Apply Unicode normalization
-            normalized_value = unicodedata.normalize('NFD', value.text.strip()).encode('ascii', 'ignore').decode('utf-8')
-            
-            product_specs[key] = normalized_value
+        print(max_retail_price)
+
+        product_specs = {}
+        try:
+            product_details = await page.query_selector('div#prodDetails')
+            specs = await product_details.query_selector_all('table')
+
+            for table in specs:
+                for row in await table.query_selector_all('tr'):
+                    key = await (await row.query_selector('th')).text_content()
+                    value = await row.query_selector('td')
+
+                    if key == 'Customer Reviews':
+                        avg_rating = await value.query_selector('a')
+                        avg_rating = await (await avg_rating.query_selector('span')).text_content()
+                        avg_rating = avg_rating.strip()
+                        rating_count = await (await value.query_selector('span#acrCustomerReviewText')).text_content()
+                        rating_count = rating_count.strip()
+                        continue
+
+                    # Apply Unicode normalization
+                    value = await value.text_content()
+                    value = value.strip()
+                    normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
+                    product_specs[key] = normalized_value
+        except Exception as e:
+            print('###############################', e)
+            avg_rating = 'Not available'
+            rating_count = 'Not available'
+            product_specs = 'Not available'
+
+        print(avg_rating)
+        print(rating_count)
+        print(product_specs)
+
+        await browser.close()
 
     df = pd.DataFrame()
     df['Product Name'] = [product_name]
@@ -66,29 +104,13 @@ async def scrape_data(asin: str):
     df.to_csv('product_data.csv', index=False)
 
 
-    page.close()
-
-    print(product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs)
-    # return [product_name, discount, selling_price_value, max_retail_price, avg_rating, rating_count, product_specs]
-
-def run_scraper(asin):
+def run_scraper(asin: str):
     loop = asyncio.ProactorEventLoop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(scrape_data(asin))
     
-# if __name__ == '__main__':
-#     # scraped_data = scrape_data(asin='B0BGS8PG3K')
-#     # for data in scraped_data:
-#     #     print("\n", data)
-
-#     scraped_data = asyncio.run(scrape_data('B0BGS8PG3K'))
-#     for data in scraped_data:
-#         print("\n", data)
+    # asyncio.run(scrape_data(asin))
 
 if __name__ == '__main__':
-    # loop = asyncio.ProactorEventLoop()
-    # asyncio.set_event_loop(loop)
-    # loop.run_until_complete(single_category_scraper(keyword))
-    loop = asyncio.ProactorEventLoop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(scrape_data('B0BGS8PG3K'))
+
+    run_scraper('B0BGS8PG3K')
