@@ -102,9 +102,44 @@ async def scrape_data(asin: str):
                     normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
                     product_specs[key] = normalized_value
 
-        except Exception as e:
-            print('Error in finding specifications:', e)
-            product_specs = 'Not available'
+
+        except:
+            try:
+                product_details_parents = await page.query_selector_all(":text('Product details') >> ..")
+
+                product_details_elements = await product_details_parents[0].query_selector_all("div[class='a-fixed-left-grid product-facts-detail']")
+                for product_details_element in product_details_elements:
+                    product_details_element = await product_details_element.query_selector("div")
+                    product_details = await product_details_element.query_selector_all("div")
+                    key = await product_details[0].text_content()
+                    key = key.strip()
+                    if key == 'ASIN':
+                        continue
+                    value = await product_details[1].text_content()
+                    value = value.strip()
+                    normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
+                    product_specs[key] = normalized_value
+            
+                product_details_elements = await product_details_parents[1].query_selector_all("ul")
+                product_details_lists = await product_details_elements[0].query_selector_all("li")
+                for product_details_list in product_details_lists:
+                    product_details = await product_details_list.query_selector("span")
+                    product_details = await product_details.query_selector_all("span")
+                    key = await product_details[0].text_content()
+                    key = key.strip()
+                    normalized_key = unicodedata.normalize('NFD', key).encode('ascii', 'ignore').decode('utf-8')
+                    normalized_key = normalized_key.replace(':', '')
+                    normalized_key = normalized_key.strip()
+                    if normalized_key == 'ASIN':
+                        continue
+                    value = await product_details[1].text_content()
+                    value = value.strip()
+                    normalized_value = unicodedata.normalize('NFD', value).encode('ascii', 'ignore').decode('utf-8')
+                    product_specs[normalized_key] = normalized_value
+
+            except Exception as e:
+                print('Error in finding specifications:', e)
+                product_specs = 'Not available'
 
         print(product_specs)
 
@@ -133,4 +168,5 @@ def run_scraper(asin: str):
 
 if __name__ == '__main__':
 
-    run_scraper('B0BGS8PG3K')
+    # run_scraper('B0BGS8PG3K')
+    run_scraper('B083FQS2GZ')
