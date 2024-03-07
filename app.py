@@ -47,15 +47,26 @@ if st.session_state.download_button_clicked:
     st.write("### Product Data:")
     df = pd.read_csv('./data/product_data.csv')
     for data in df.values:
-        st.write(f"**Product Name:** {data[0]}")
-        st.write(f"**Discount:** {data[1]}%")
-        st.write(f"**Selling Price:** {data[2]}")
-        st.write(f"**Max Retail Price:** {data[3]}")
-        st.write(f"**Average Rating:** {data[4]}")
-        st.write(f"**Rating Count:** {data[5]}")
+        st.write(f"**ASIN:** {data[0]}")
+        st.write(f"**Product Name:** {data[1]}")
+        st.write(f"**Discount:** {data[2]}%")
+        st.write(f"**Selling Price:** {data[3]}")
+        st.write(f"**Max Retail Price:** {data[4]}")
+        st.write(f"**Currency:** {data[5]}")
+        st.write(f"**Average Rating:** {data[6]}")
+        st.write(f"**Rating Count:** {data[7]}")
         st.write(f"**Product Specifications:**")
-        for key, value in eval(data[6]).items():
-            st.write(f" - {key}: {value}")
+        if data[8] == 'Not available':
+            st.write(" - Not available")
+        else:
+            for key, value in eval(data[8]).items():
+                st.write(f" - {key}: {value}")
+
+    df_to_download = df
+    product_specs = df_to_download['product_specs'][0]
+    product_specs = product_specs.replace('{', '').replace('}', '').replace("'", '').split(', ')
+    product_specs = '\n'.join(product_specs)
+    df_to_download['product_specs'] = product_specs
 
     st.write(" ")
 
@@ -63,7 +74,7 @@ if st.session_state.download_button_clicked:
 
     st.download_button(
     label="Download",
-    data=df.to_csv(index=False),
+    data=df_to_download.to_csv(index=False),
     file_name='product_data.csv',
     mime='text/csv',
     )
