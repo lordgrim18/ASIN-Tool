@@ -25,6 +25,17 @@ Once the data is fetched successfully, you'll be presented with detailed product
 Let's get started!
 """)
 
+# Expander for ASIN intro
+with st.expander("What is an ASIN?"):
+    st.markdown("""
+    ASIN stands for **Amazon Standard Identification Number**. It's a unique alphanumeric code assigned to each product on Amazon. Every ASIN will be 10 digits and consist of a combination of letters and digits.
+
+    You can find the ASIN of a product on its product page, usually located in the product details section. 
+    Or you can get it from the url of the Product Description Page. 
+
+    Knowing the ASIN allows you to quickly look up specific product details on Amazon or use tools like this one to scrape data about the product.
+    """)
+
 st.write(" ")
 st.write(" ")
 
