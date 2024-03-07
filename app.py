@@ -3,6 +3,7 @@ os.system("playwright install chromium")
 
 import streamlit as st  
 import pandas as pd
+from time import sleep
 
 from win10toast import ToastNotifier
 toaster = ToastNotifier()
@@ -33,11 +34,11 @@ if st.button("Search"):
     if asin_input:
         with st.spinner("Scraping data from Amazon... Please wait."):
             run_scraper(asin_input)
-        
-        if os.path.exists('product_data.csv'):
+
+        if os.path.exists('./data/product_data.csv'):
             toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
             st.write("### Product Data:")
-            df = pd.read_csv('product_data.csv')
+            df = pd.read_csv('./data/product_data.csv')
             for data in df.values:
                 st.write(f"**Product Name:** {data[0]}")
                 st.write(f"**Discount:** {data[1]}%")
@@ -48,3 +49,13 @@ if st.button("Search"):
                 st.write(f"**Product Specifications:**")
                 for key, value in eval(data[6]).items():
                     st.write(f" - {key}: {value}")
+
+            st.write(" ")
+            st.write('### Want to download the data as a CSV file? Click the button below!')
+
+            st.download_button(
+            label="Download",
+            data=df.to_csv(index=False),
+            file_name='product_data.csv',
+            mime='text/csv',
+            )
