@@ -30,34 +30,50 @@ async def scrape_data(asin: str):
         print(product_name)
 
         try:
-            discount_element = await page.query_selector('span[class="a-size-large a-color-price savingPriceOverride aok-align-center reinventPriceSavingsPercentageMargin savingsPercentage"]')
-            discount = await discount_element.text_content()
-            discount = abs(int(discount[:-1]))
-        except Exception as e:
-            print('No discount', e)
-            discount = 0
-
-        print(discount)
-
-        try:
             selling_price_element = await (await page.query_selector('span[class="a-price aok-align-center reinventPricePriceToPayMargin priceToPay"]')).text_content()
             selling_price_value = Price.fromstring(selling_price_element).amount_float
+
             currency_used = Price.fromstring(selling_price_element).currency
-        except Exception as e:
-            print('Error in finding selling price:' ,e)
-            selling_price_value = 'Not available'
 
-        print(selling_price_value)
-
-        try:
             max_retail_price_element = await (await page.query_selector('span[class="a-price a-text-price"]')).text_content()
             # max_retail_price = await max_retail_price_element.query_selector('span').text_content()
             max_retail_price = Price.fromstring(max_retail_price_element).amount_float
-        except Exception as e:
-            print('Error in finding max retail price:', e)
-            max_retail_price = 'Not available'
 
+            discount = (max_retail_price - selling_price_value) / max_retail_price * 100
+            discount = discount.__round__()
+
+        except:
+            try:
+                # price_parent_element = await page.query_selector(":text('M.R.P') >> .. >> .. >> .. >> ..")
+                selling_price_element = await page.query_selector('span[class="a-price a-text-price a-size-medium apexPriceToPay"]')
+                selling_price = await selling_price_element.text_content()
+                selling_price_value = Price.fromstring(selling_price).amount_float
+                currency_used = Price.fromstring(selling_price).currency
+
+                try:
+                    mrp_discount_element = await page.query_selector_all('span[class="a-price a-text-price a-size-base"]')
+
+                    max_retail_price = await mrp_discount_element[0].text_content()
+                    max_retail_price = Price.fromstring(max_retail_price).amount_float
+
+                    discount = (max_retail_price - selling_price_value) / max_retail_price * 100
+                    discount = discount.__round__()
+
+                except:
+                    max_retail_price = selling_price
+                    discount = 0
+
+            except Exception as e:
+                print('Error in finding price:' ,e)
+                selling_price_value = 'Not available'
+                currency_used = 'Not available'
+                max_retail_price = 'Not available'
+                discount = 'Not available'
+
+        print(selling_price_value)
+        print(currency_used)
         print(max_retail_price)
+        print(discount)
 
         try:
             avg_rating = await (await page.query_selector('span[data-hook="rating-out-of-text"]')).text_content()
@@ -169,4 +185,13 @@ def run_scraper(asin: str):
 if __name__ == '__main__':
 
     # run_scraper('B0BGS8PG3K')
-    run_scraper('B083FQS2GZ')
+    # run_scraper('B083FQS2GZ')
+    # run_scraper('B0CRDDTQXS')
+    # run_scraper('B0CPYJJJMM')
+    # run_scraper('B077BFH786')
+    # run_scraper('B07M9XYH9K')
+    # run_scraper('B08D8J88X3')
+    # run_scraper('B09CKWH7W3')
+    # run_scraper('B0C9HXT93P')
+    # run_scraper('B09D8BQM7C')
+    run_scraper('B09GB7Y272')
