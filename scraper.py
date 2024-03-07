@@ -67,6 +67,7 @@ async def scrape_data(asin: str):
             for table in specs:
                 for row in await table.query_selector_all('tr'):
                     key = await (await row.query_selector('th')).text_content()
+                    key = key.strip()
                     value = await row.query_selector('td')
 
                     if key == 'ASIN':
