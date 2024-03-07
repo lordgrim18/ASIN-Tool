@@ -4,6 +4,9 @@ os.system("playwright install chromium")
 import streamlit as st  
 import pandas as pd
 
+from win10toast import ToastNotifier
+toaster = ToastNotifier()
+
 from scraper import run_scraper
 
 
@@ -17,6 +20,7 @@ if st.button("Search"):
             run_scraper(asin_input)
         
         if os.path.exists('product_data.csv'):
+            toaster.show_toast("Data scraped successfully!", "Product data has been scraped successfully!", duration=5, threaded=True)
             st.write("### Product Data:")
             df = pd.read_csv('product_data.csv')
             for data in df.values:
