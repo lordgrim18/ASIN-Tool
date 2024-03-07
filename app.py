@@ -56,8 +56,11 @@ if st.session_state.download_button_clicked:
         st.write(f"**Average Rating:** {data[6]}")
         st.write(f"**Rating Count:** {data[7]}")
         st.write(f"**Product Specifications:**")
-        for key, value in eval(data[8]).items():
-            st.write(f" - {key}: {value}")
+        if data[8] == 'Not available':
+            st.write(" - Not available")
+        else:
+            for key, value in eval(data[8]).items():
+                st.write(f" - {key}: {value}")
 
     df_to_download = df
     product_specs = df_to_download['product_specs'][0]
