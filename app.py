@@ -35,7 +35,7 @@ if st.button("Search"):
             run_scraper(asin_input)
         
         if os.path.exists('product_data.csv'):
-            toaster.show_toast("Data scraped successfully!", "Product data has been scraped successfully!", duration=5, threaded=True)
+            toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
             st.write("### Product Data:")
             df = pd.read_csv('product_data.csv')
             for data in df.values:
