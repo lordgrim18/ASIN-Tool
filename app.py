@@ -49,10 +49,15 @@ if st.session_state.download_button_clicked:
     for data in df.values:
         st.write(f"**ASIN:** {data[0]}")
         st.write(f"**Product Name:** {data[1]}")
-        st.write(f"**Discount:** {data[2]}%")
-        st.write(f"**Selling Price:** {data[3]}")
-        st.write(f"**Max Retail Price:** {data[4]}")
-        st.write(f"**Currency:** {data[5]}")
+        if data[2] == data[3] == data[4] == 'Not available':
+            st.write(f"**Currently unavailable**")
+            st.write(f"No price and discount present")
+            st.write(" ")
+        else:
+            st.write(f"**Discount:** {data[2]}")
+            st.write(f"**Selling Price:** {data[3]}")
+            st.write(f"**Max Retail Price:** {data[4]}")
+            st.write(f"**Currency:** {data[5]}")
         st.write(f"**Average Rating:** {data[6]}")
         st.write(f"**Rating Count:** {data[7]}")
         st.write(f"**Product Specifications:**")
