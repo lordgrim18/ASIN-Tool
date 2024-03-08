@@ -59,8 +59,7 @@ async def get_product_price_discount(page):
 async def get_avg_rating(page):
     try:
         avg_rating = await (await page.query_selector('span[data-hook="rating-out-of-text"]')).text_content()
-        avg_rating = avg_rating.strip()
-        avg_rating = avg_rating.split(' ')[0]
+        avg_rating = avg_rating.strip().split(' ')[0]
     except Exception as e:
         # print('Error in finding average rating:', e)
         avg_rating = 'Not available'
@@ -70,8 +69,7 @@ async def get_avg_rating(page):
 async def get_rating_count(page):
     try:
         rating_count = await (await page.query_selector('span[data-hook="total-review-count"]')).text_content()
-        rating_count = rating_count.strip()
-        rating_count = rating_count.split(' ')[0]
+        rating_count = rating_count.strip().split(' ')[0]
     except Exception as e:
         # print('Error in finding total ratings:', e)
         rating_count = 'Not available'
