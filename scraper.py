@@ -1,7 +1,7 @@
-from price_parser import Price
-import unicodedata
 import asyncio
+import unicodedata
 import pandas as pd
+from price_parser import Price
 from playwright.async_api import async_playwright
 
 BASE_URL = 'https://www.amazon.in/dp/'
@@ -29,9 +29,6 @@ async def get_product_price_discount(page):
         # max_retail_price = await max_retail_price_element.query_selector('span').text_content()
         max_retail_price = Price.fromstring(max_retail_price_element).amount_float
 
-        discount = (max_retail_price - selling_price_value) / max_retail_price * 100
-        discount = discount.__round__()
-
     except:
         try:
             # price_parent_element = await page.query_selector(":text('M.R.P') >> .. >> .. >> .. >> ..")
@@ -40,26 +37,23 @@ async def get_product_price_discount(page):
             selling_price_value = Price.fromstring(selling_price).amount_float
             currency_used = Price.fromstring(selling_price).currency
 
-            try:
-                mrp_discount_element = await page.query_selector_all('span[class="a-price a-text-price a-size-base"]')
-
-                max_retail_price = await mrp_discount_element[0].text_content()
-                max_retail_price = Price.fromstring(max_retail_price).amount_float
-
-                discount = (max_retail_price - selling_price_value) / max_retail_price * 100
-                discount = discount.__round__()
-
-            except:
-                max_retail_price = selling_price_value
-                discount = 0
+            mrp_discount_element = await page.query_selector_all('span[class="a-price a-text-price a-size-base"]')
+            max_retail_price = (
+            Price.fromstring(await mrp_discount_element[0].text_content()).amount_float
+            if  mrp_discount_element
+            else selling_price_value
+            )
 
         except Exception as e:
             # print('Error in finding price:' ,e)
             selling_price_value = 'Not available'
             currency_used = 'Not available'
             max_retail_price = 'Not available'
-            discount = 'Not available'
 
+    discount = round(((
+        max_retail_price - selling_price_value) / max_retail_price) * 100
+        ) if selling_price_value != 'Not available' else 'Not available'
+    
     return selling_price_value, max_retail_price, currency_used, discount
 
 async def get_avg_rating(page):
@@ -199,8 +193,8 @@ if __name__ == '__main__':
     # run_scraper('B0CPYJJJMM')
     # run_scraper('B077BFH786')
     # run_scraper('B07M9XYH9K')
-    run_scraper('B08D8J88X3v')
+    # run_scraper('B08D8J88X3')
     # run_scraper('B09CKWH7W3')
-    # run_scraper('B0C9HXT93P')
+    run_scraper('B0C9HXT93P')
     # run_scraper('B09D8BQM7C')
     # run_scraper('B09GB7Y272')
