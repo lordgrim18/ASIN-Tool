@@ -264,11 +264,11 @@ def run_scraper(asin: str):
 
     :param asin: str
     """
-    loop = asyncio.ProactorEventLoop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(scrape_data(asin))
+    # loop = asyncio.ProactorEventLoop()
+    # asyncio.set_event_loop(loop)
+    # loop.run_until_complete(scrape_data(asin))
 
-    # asyncio.run(scrape_data(asin))
+    asyncio.run(scrape_data(asin))
 
 if __name__ == '__main__':
 
