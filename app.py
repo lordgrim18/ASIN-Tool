@@ -56,9 +56,16 @@ if st.button("Search"):
                 run_scraper(asin_input)
 
             if os.path.exists('./data/product_data.csv'):
+                check_df = pd.read_csv('./data/product_data.csv')
+                if check_df['ASIN'][0] == 'Invalid ASIN':
+                    st.error("Invalid ASIN entered. Please try again.")
+                    toaster.show_toast("Invalid ASIN entered!", "Please enter a valid ASIN.", duration=5, threaded=True)
+                    st.session_state.download_button_clicked = False
+                    exit()
+                    # st.rerun()
                 st.session_state.download_button_clicked = True
                 toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
-                
+
     elif asin_input and not os.path.exists('./data/product_data.csv'):
         with st.spinner("Scraping data from Amazon... Please wait."):
             run_scraper(asin_input)

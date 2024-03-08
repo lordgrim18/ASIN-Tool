@@ -160,6 +160,13 @@ async def scrape_data(asin: str):
         await page.goto(url)
         await page.wait_for_load_state('load')
 
+        if await page.query_selector(":has-text('The Web address you entered is not a functioning page on our site.')"):
+            print('Invalid ASIN')
+            df = pd.DataFrame()
+            df['ASIN'] = ['Invalid ASIN']
+            df.to_csv('./data/product_data.csv', index=False)
+            return 
+
         df = pd.DataFrame()
         df['ASIN'] = [asin]
         df['product_name'] = [await get_product_name(page)]
@@ -192,7 +199,7 @@ if __name__ == '__main__':
     # run_scraper('B0CPYJJJMM')
     # run_scraper('B077BFH786')
     # run_scraper('B07M9XYH9K')
-    run_scraper('B08D8J88X3')
+    run_scraper('B08D8J88X3v')
     # run_scraper('B09CKWH7W3')
     # run_scraper('B0C9HXT93P')
     # run_scraper('B09D8BQM7C')
