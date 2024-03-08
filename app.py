@@ -4,13 +4,11 @@ os.system("playwright install chromium")
 
 # importing libraries
 import pandas as pd
-import streamlit as st  
-from win10toast import ToastNotifier
+import streamlit as st
 
 from scraper import run_scraper
 
 # creating an instance of the ToastNotifier class to display notifications
-toaster = ToastNotifier()
 
 # setting the title of the web app
 st.title("ASIN Tool - Amazon Product Details Lookup")
@@ -57,7 +55,7 @@ if st.button("Search"):
         check_df = pd.read_csv('./data/product_data.csv')
         if check_df['ASIN'][0] == asin_input:
           st.session_state.display_data_bool = True
-          toaster.show_toast("Data already present!", "Product data is available in the web app!", duration=5, threaded=True)
+        #   Notification("Data already present!", "Product data is available in the web app!", icon="info").show()
           st.rerun()
     with st.spinner("Scraping data from Amazon... Please wait."):
         run_scraper(asin_input)
@@ -67,7 +65,7 @@ if st.button("Search"):
         check_df = pd.read_csv('./data/product_data.csv')
         if check_df['ASIN'][0] == 'Invalid ASIN':
           st.error("Invalid ASIN entered. Please try again.")
-          toaster.show_toast("Invalid ASIN entered!", "Please enter a valid ASIN.", duration=5, threaded=True)
+        #   Notification("Invalid ASIN entered!", "Please enter a valid ASIN.", icon="error").show()
           st.session_state.display_data_bool = False
 
 # displaying the data
