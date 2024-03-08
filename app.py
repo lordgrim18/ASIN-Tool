@@ -46,7 +46,20 @@ asin_input = st.text_input("Enter ASIN (Amazon Standard Identification Number):"
 
 if st.button("Search"):
     st.session_state.download_button_clicked = False
-    if asin_input:
+    if asin_input and os.path.exists('./data/product_data.csv'):
+        check_df = pd.read_csv('./data/product_data.csv')
+        if check_df['ASIN'][0] == asin_input:
+            st.session_state.download_button_clicked = True
+            toaster.show_toast("Data already present!", "Product data is available in the web app!", duration=5, threaded=True)
+        else:
+            with st.spinner("Scraping data from Amazon... Please wait."):
+                run_scraper(asin_input)
+
+            if os.path.exists('./data/product_data.csv'):
+                st.session_state.download_button_clicked = True
+                toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
+                
+    elif asin_input and not os.path.exists('./data/product_data.csv'):
         with st.spinner("Scraping data from Amazon... Please wait."):
             run_scraper(asin_input)
 
