@@ -25,6 +25,17 @@ Once the data is fetched successfully, you'll be presented with detailed product
 Let's get started!
 """)
 
+# Expander for ASIN intro
+with st.expander("What is an ASIN?"):
+    st.markdown("""
+    ASIN stands for **Amazon Standard Identification Number**. It's a unique alphanumeric code assigned to each product on Amazon. Every ASIN will be 10 digits and consist of a combination of letters and digits.
+
+    You can find the ASIN of a product on its product page, usually located in the product details section. 
+    Or you can get it from the url of the Product Description Page. 
+
+    Knowing the ASIN allows you to quickly look up specific product details on Amazon or use tools like this one to scrape data about the product.
+    """)
+
 st.write(" ")
 st.write(" ")
 
@@ -35,7 +46,20 @@ asin_input = st.text_input("Enter ASIN (Amazon Standard Identification Number):"
 
 if st.button("Search"):
     st.session_state.download_button_clicked = False
-    if asin_input:
+    if asin_input and os.path.exists('./data/product_data.csv'):
+        check_df = pd.read_csv('./data/product_data.csv')
+        if check_df['ASIN'][0] == asin_input:
+            st.session_state.download_button_clicked = True
+            toaster.show_toast("Data already present!", "Product data is available in the web app!", duration=5, threaded=True)
+        else:
+            with st.spinner("Scraping data from Amazon... Please wait."):
+                run_scraper(asin_input)
+
+            if os.path.exists('./data/product_data.csv'):
+                st.session_state.download_button_clicked = True
+                toaster.show_toast("Data scraped successfully!", "Product data is available in the web app!", duration=5, threaded=True)
+                
+    elif asin_input and not os.path.exists('./data/product_data.csv'):
         with st.spinner("Scraping data from Amazon... Please wait."):
             run_scraper(asin_input)
 
